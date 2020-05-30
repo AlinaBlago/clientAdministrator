@@ -51,8 +51,8 @@
                 </Button>
             <SplitPane dividerPositions="0.27979274611398963" layoutX="17.0" layoutY="221.0" prefHeight="322.0" prefWidth="581.0">
               <items>
-                  <ListView prefHeight="320.0" prefWidth="170.0" style="-fx-background-color: orange;" />
-                  <ListView prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: purple;" />
+                  <ListView fx:id="users_listview" prefHeight="320.0" prefWidth="170.0" style="-fx-background-color: orange;" />
+                  <ListView fx:id="chat_listview" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: purple;" />
               </items>
             </SplitPane>
             <TextField fx:id="send_message_field" layoutX="196.0" layoutY="575.0" prefHeight="35.0" prefWidth="402.0" />

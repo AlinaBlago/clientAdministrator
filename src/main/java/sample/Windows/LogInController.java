@@ -42,7 +42,9 @@ public class LogInController {
         login_btn.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
                 try {
-                    //TODO:сделать проверки логина и пароля
+                    if(login_field.getText().length() == 0 || password_field.getText().length() == 0){
+                        return;
+                    }
 
                     StringBuffer url = new StringBuffer();
                     url.append("http://localhost:8080/Login?login=");

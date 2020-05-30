@@ -20,7 +20,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="ClientMessengerV2" target="6" />
+      <module name="ClientMessengerV2" target="8" />
     </bytecodeTargetLevel>
   </component>
 </project>
