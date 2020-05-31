@@ -17,6 +17,10 @@ public class CurrentUserInfo {
    private static String currentKey;
    public static Thread ourThread ;
 
+   public static void StopThread(){
+       ourThread.destroy();
+   }
+
     public static User getCurrentUser() {
         return currentUser;
     }
