@@ -30,6 +30,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import org.apache.log4j.Logger;
 import sample.*;
 
 
@@ -58,6 +59,8 @@ public class ApplController implements Initializable {
 
     @FXML
     private Button find_user_btn;
+
+    private static final Logger log = Logger.getLogger(ApplController.class);
 
 
     @Override
@@ -101,6 +104,7 @@ public class ApplController implements Initializable {
 
     private void Send(){
         if (users_listview.getSelectionModel().isEmpty() == true){
+            log.info("Send function call : user is empty");
             return;
         }
         else{
@@ -116,9 +120,11 @@ public class ApplController implements Initializable {
                 }
 
                 if(isExistsOnlyOfSpace){
+                    log.info("entered message text consist only of space");
                     return;
                 }else{
                     try {
+                        log.info("Staring send 'sendMessage' to server");
                         StringBuffer url = new StringBuffer();
                         url.append("http://localhost:8080/sendMessage?senderLogin=");
                         url.append(CurrentUserInfo.getCurrentUser().getLogin());
@@ -139,6 +145,8 @@ public class ApplController implements Initializable {
                         String inputLine;
                         StringBuffer response = new StringBuffer();
 
+                        log.info("request 'sendMessage' sended" );
+
                         while ((inputLine = in.readLine()) != null) {
                             response.append(inputLine);
                         }
@@ -155,6 +163,7 @@ public class ApplController implements Initializable {
                         send_message_field.setText("");
 
                     }catch (Exception e){
+                        log.warn(e.getMessage());
                         System.out.println(e.getMessage());
                     }
 
@@ -163,6 +172,7 @@ public class ApplController implements Initializable {
             }else{
                 return;
             }
+            log.info("Entered message text less than 0 symbols");
         }
     }
 
@@ -172,6 +182,7 @@ public class ApplController implements Initializable {
         }
 
         try {
+            log.info("start send 'findUser' to server");
             StringBuffer url = new StringBuffer();
             url.append("http://localhost:8080/isUserExists?senderLogin=");
             url.append(CurrentUserInfo.getCurrentUser().getLogin());
@@ -193,19 +204,23 @@ public class ApplController implements Initializable {
                 response.append(inputLine);
             }
             in.close();
+            log.info("request sended");
             Gson gson = new Gson();
 
             AuthorizationResponse response1 = gson.fromJson(response.toString(), AuthorizationResponse.class);
 
             if(response1.getResponseID() == 0){
+                log.info("response 0 from server");
                 users_listview.getItems().add(find_user_login.getText());
                 users_listview.refresh();
             }else{
+                log.warn("response not 0 from server : " + response1.getResponseMessage());
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setContentText("User not found");
                 alert.show();
             }
         }catch (Exception e){
+            log.warn(e.getMessage());
             System.out.println(e.getMessage());
         }
     }
@@ -280,13 +295,16 @@ public class ApplController implements Initializable {
             }
         };
 
+        log.info("Thread bound");
+
         CurrentUserInfo.ourThread = new Thread(task);
         CurrentUserInfo.ourThread.start();
+        log.info("Thread started");
     }
 
     private void UpdateChatForUser(String login){
         try {
-
+            log.info("sending 'updatechatforuser' request to server");
             StringBuffer url = new StringBuffer();
             url.append("http://localhost:8080/getChat?senderLogin=");
             url.append(CurrentUserInfo.getCurrentUser().getLogin());
@@ -308,6 +326,7 @@ public class ApplController implements Initializable {
                 response.append(inputLine);
             }
             in.close();
+            log.info("request was sent");
             Gson gson = new Gson();
 
             AuthorizationResponse response1 = gson.fromJson(response.toString(), AuthorizationResponse.class);
@@ -320,7 +339,6 @@ public class ApplController implements Initializable {
 
 
             for(Message msg : messages){
-
                 DateFormat formatter = new SimpleDateFormat("HH:mm");
                 formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
                 String dateFormatted = formatter.format(msg.getDate().getTime());
@@ -339,7 +357,7 @@ public class ApplController implements Initializable {
 
     private void LoadUserChats(){
         try {
-
+            log.info("request 'loaduserchat' configuration");
             StringBuffer url = new StringBuffer();
             url.append("http://localhost:8080/GetUserChats?login=");
             url.append(CurrentUserInfo.getCurrentUser().getLogin());
@@ -359,6 +377,7 @@ public class ApplController implements Initializable {
                 response.append(inputLine);
             }
             in.close();
+            log.info("request was sent");
             Gson gson = new Gson();
 
             AuthorizationResponse response1 = gson.fromJson(response.toString(), AuthorizationResponse.class);
@@ -376,8 +395,10 @@ public class ApplController implements Initializable {
     }
 
     private void LogOut(){
+        log.info("logout command");
         CurrentUserInfo.LogOut();
         CurrentUserInfo.ourThread.stop();
+        log.info("thread was stopped");
 
         Stage stageToClose = (Stage) logout_btn.getScene().getWindow();
         stageToClose.close();
@@ -393,6 +414,7 @@ public class ApplController implements Initializable {
         }
         mainStage.setScene(new Scene(root, 620, 680));
         mainStage.show();
+        log.info("opened login.fxml");
     }
 }
 

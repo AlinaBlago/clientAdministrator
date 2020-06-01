@@ -19,6 +19,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import org.apache.log4j.Logger;
 import sample.AuthorizationResponse;
 
 public class LogUpController {
@@ -39,6 +40,8 @@ public class LogUpController {
     private PasswordField repeat_password_field;
 
 
+    private static final Logger log = Logger.getLogger(LogUpController.class);
+
     @FXML
     void initialize() {
         signUp_btn.setOnAction(new EventHandler<ActionEvent>() {
@@ -51,6 +54,7 @@ public class LogUpController {
                     if (!password_field.getText().equals(repeat_password_field.getText()))
                         throw new Exception("Passwords are not equal!");
                 } catch (Exception e) {
+                    log.warn(e.getMessage());
                     Alert alert = new Alert(Alert.AlertType.WARNING);
                     alert.setTitle("WARNING");
                     alert.setHeaderText("Wrong data");
@@ -59,6 +63,7 @@ public class LogUpController {
                     return;
                 }
 
+                log.info("request sign up sending");
                 StringBuffer url = new StringBuffer();
                 url.append("http://localhost:8080/SignUp?name=");
                 url.append(name_field.getText());
@@ -108,10 +113,13 @@ public class LogUpController {
                     e.printStackTrace();
                 }
 
+                log.info("request was sent");
+
                 Gson gson = new Gson();
 
                 AuthorizationResponse response1 = gson.fromJson(response.toString() , AuthorizationResponse.class);
                 if(response1.getResponseID() == 0){
+                    log.info("registration successful");
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("Answer");
                     alert.setHeaderText("Results:");
@@ -122,6 +130,7 @@ public class LogUpController {
                     return;
                 }
                 if(response1.getResponseID() == 2){
+                    log.warn("registration failed");
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle(response1.getResponseMessage());
                     alert.setHeaderText("Results:");

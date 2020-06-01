@@ -10,6 +10,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import org.apache.log4j.Logger;
 import sample.AuthorizationResponse;
 import sample.CurrentUserInfo;
 import sample.User;
@@ -35,6 +36,8 @@ public class LogInController {
     @FXML
     private PasswordField password_field;
 
+
+    private static final Logger log = Logger.getLogger(LogInController.class);
 
     @FXML
     void initialize()   {
@@ -71,6 +74,7 @@ public class LogInController {
                     CurrentUserInfo.Init(user , response1.getResponseMessage());
 
                     if(response1.getResponseID() == 0) {
+                        log.info("User logined");
                         //Открываем главное окно
                         Stage applStage = new Stage();
                         FXMLLoader loader = new FXMLLoader();
@@ -85,6 +89,7 @@ public class LogInController {
                     }
 
                 } catch (Exception e) {
+                    log.info(e.getMessage());
                     System.out.println(e.getMessage());
                 }
             }
