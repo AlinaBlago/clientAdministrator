@@ -10,16 +10,18 @@ import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Set;
+import java.util.logging.Logger;
 
 public class CurrentUserInfo {
+    private static User currentUser;
+    private static String currentKey;
+    public static Thread ourThread ;
+    public static String currentChat;
+    public static Logger LOGGER;
 
-   private static User currentUser;
-   private static String currentKey;
-   public static Thread ourThread ;
-
-   public static void StopThread(){
-       ourThread.destroy();
-   }
+    public static void StopThread(){
+        ourThread.destroy();
+    }
 
     public static User getCurrentUser() {
         return currentUser;
