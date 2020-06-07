@@ -35,7 +35,6 @@ import sample.*;
 
 
 public class ApplController implements Initializable {
-
     @FXML
     private Label current_user_name_lbl;
 
@@ -43,22 +42,16 @@ public class ApplController implements Initializable {
     private Button logout_btn;
 
     @FXML
-    private Button send_btn;
-
-    @FXML
     private ListView<String> users_listview;
 
     @FXML
-    private ListView<String> chat_listview;
+    private Button delete_user_btn;
 
     @FXML
-    private TextField send_message_field;
+    private Button block_user_btn;
 
     @FXML
-    private TextField find_user_login;
-
-    @FXML
-    private Button find_user_btn;
+    private Button unblock_user_btn;
 
     private static final Logger log = Logger.getLogger(ApplController.class);
 
@@ -72,246 +65,51 @@ public class ApplController implements Initializable {
             }
         });
 
-        find_user_btn.setOnAction(new EventHandler<ActionEvent>() {
+        delete_user_btn.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
-                FindUser();
+                deleteUser();
             }
         });
 
-        send_btn.setOnAction(new EventHandler<ActionEvent>() {
+        block_user_btn.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
-                Send();
+                banUser();
             }
         });
 
+        unblock_user_btn.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent event) {
+                unbanUser();
+            }
+        });
+
+        /*
         users_listview.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                UsersListViewChanged(newValue);
+                //UsersListViewChanged(newValue);
             }
-        });
+        });*/
 
-        BindThreadCheckNewMessages();
-
-        LoadUserChats();
+        LoadUsers();
 
         SetCurrentUserNameToWindow();
     }
 
-    private void UsersListViewChanged(String newValue){
-        UpdateChatForUser(newValue);
-    }
-
-    private void Send(){
+    private void deleteUser(){
         if (users_listview.getSelectionModel().isEmpty() == true){
-            log.info("Send function call : user is empty");
+            log.info("Delete user function call : user is empty");
             return;
         }
-        else{
-            String selected_user = users_listview.getSelectionModel().getSelectedItem();
-            if(send_message_field.getText().length() > 0){
-                boolean isExistsOnlyOfSpace = true;
-
-                for(Character symbol : send_message_field.getText().toCharArray()){
-                    if(!symbol.equals(' ')){
-                        isExistsOnlyOfSpace = false;
-                        break;
-                    }
-                }
-
-                if(isExistsOnlyOfSpace){
-                    log.info("entered message text consist only of space");
-                    return;
-                }else{
-                    try {
-                        log.info("Staring send 'sendMessage' to server");
-                        StringBuffer url = new StringBuffer();
-                        url.append("http://localhost:8080/sendMessage?senderLogin=");
-                        url.append(CurrentUserInfo.getCurrentUser().getLogin());
-                        url.append("&senderKey=");
-                        url.append(CurrentUserInfo.getCurrentKey());
-                        url.append("&receiverLogin=");
-                        url.append(users_listview.getSelectionModel().getSelectedItem());
-                        url.append("&message=");
-                        String mesg = send_message_field.getText().replaceAll(" " , "%20");
-                        url.append(mesg);
-
-                        URL obj = new URL(url.toString());
-                        HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
-
-                        connection.setRequestMethod("GET");
-
-                        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                        String inputLine;
-                        StringBuffer response = new StringBuffer();
-
-                        log.info("request 'sendMessage' sended" );
-
-                        while ((inputLine = in.readLine()) != null) {
-                            response.append(inputLine);
-                        }
-                        in.close();
-
-                        DateFormat formatter = new SimpleDateFormat("HH:mm");
-                        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-                        String dateFormatted = formatter.format(System.currentTimeMillis());
-                        chat_listview.getItems().add(dateFormatted + " " + CurrentUserInfo.getCurrentUser().getLogin() + " : " + send_message_field.getText());
-
-                        int index = chat_listview.getItems().size() - 1;
-                        chat_listview.scrollTo(index);
-
-                        send_message_field.setText("");
-
-                    }catch (Exception e){
-                        log.warn(e.getMessage());
-                        System.out.println(e.getMessage());
-                    }
-
-                }
-
-            }else{
-                return;
-            }
-            log.info("Entered message text less than 0 symbols");
-        }
-    }
-
-    private void FindUser(){
-        if(find_user_login.getText().length() == 0){
-            return;
-        }
-
         try {
-            log.info("start send 'findUser' to server");
+            log.info("request 'deleteUser' configuration");
             StringBuffer url = new StringBuffer();
-            url.append("http://localhost:8080/isUserExists?senderLogin=");
+            url.append("http://localhost:8080/deleteUser?login=");
             url.append(CurrentUserInfo.getCurrentUser().getLogin());
-            url.append("&senderKey=");
+            url.append("&key=");
             url.append(CurrentUserInfo.getCurrentKey());
-            url.append("&findUserLogin=");
-            url.append(find_user_login.getText());
-
-            URL obj = new URL(url.toString());
-            HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
-
-            connection.setRequestMethod("GET");
-
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-            log.info("request sended");
-            Gson gson = new Gson();
-
-            AuthorizationResponse response1 = gson.fromJson(response.toString(), AuthorizationResponse.class);
-
-            if(response1.getResponseID() == 0){
-                log.info("response 0 from server");
-                users_listview.getItems().add(find_user_login.getText());
-                users_listview.refresh();
-            }else{
-                log.warn("response not 0 from server : " + response1.getResponseMessage());
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setContentText("User not found");
-                alert.show();
-            }
-        }catch (Exception e){
-            log.warn(e.getMessage());
-            System.out.println(e.getMessage());
-        }
-    }
-
-    private void SetCurrentUserNameToWindow(){
-        String text = "Вы вошли под логином : " + CurrentUserInfo.getCurrentUser().getLogin();
-        current_user_name_lbl.setText(text);
-    }
-
-    private void BindThreadCheckNewMessages(){
-        Task task = new Task() {
-            @Override
-            protected Void call() throws InterruptedException {
-                do {
-                    try {
-                        StringBuffer url = new StringBuffer();
-                        url.append("http://localhost:8080/haveNewMessages?senderLogin=");
-                        url.append(CurrentUserInfo.getCurrentUser().getLogin());
-                        url.append("&senderKey=");
-                        url.append(CurrentUserInfo.getCurrentKey());
-
-                        URL obj = new URL(url.toString());
-                        HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
-
-                        connection.setRequestMethod("GET");
-
-                        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                        String inputLine;
-                        StringBuffer response = new StringBuffer();
-
-                        while ((inputLine = in.readLine()) != null) {
-                            response.append(inputLine);
-                        }
-                        in.close();
-                        Gson gson = new Gson();
-
-                        AuthorizationResponse response1 = gson.fromJson(response.toString(), AuthorizationResponse.class);
-
-
-                        if (response1.getResponseID() == 0) {
-                            Type listType = new TypeToken<Set<String>>() {
-                            }.getType();
-                            Set<String> users = gson.fromJson(response1.getResponseMessage(), listType);
-                        }
-
-                        Type listType = new TypeToken<ArrayList<String>>(){}.getType();
-                        ArrayList<String> usersChatUpdated = gson.fromJson(response1.getResponseMessage() , listType);
-
-                        if(usersChatUpdated.size() != 0) {
-
-                            ObservableList<String> arrusers = users_listview.getItems();
-
-                            usersChatUpdated.forEach(item -> {
-                                if (CurrentUserInfo.currentChat.equals(item)) {
-                                    Platform.runLater(() -> {
-                                        UpdateChatForUser(item);
-                                    });
-                                }
-                            });
-
-                            // TODO : доделать обновление для других пользователей
-                        }
-                        Thread.sleep(2000);
-                    }
-                    catch (ConnectException exc){
-                        CurrentUserInfo.ourThread.destroy();
-                    }
-                    catch (Exception e) {
-                        System.out.println(e.getMessage());
-                    }
-                }while(true);
-            }
-        };
-
-        log.info("Thread bound");
-
-        CurrentUserInfo.ourThread = new Thread(task);
-        CurrentUserInfo.ourThread.start();
-        log.info("Thread started");
-    }
-
-    private void UpdateChatForUser(String login){
-        try {
-            log.info("sending 'updatechatforuser' request to server");
-            StringBuffer url = new StringBuffer();
-            url.append("http://localhost:8080/getChat?senderLogin=");
-            url.append(CurrentUserInfo.getCurrentUser().getLogin());
-            url.append("&senderKey=");
-            url.append(CurrentUserInfo.getCurrentKey());
-            url.append("&companionLogin=");
-            url.append(login);
+            url.append("&userToDeleteLogin=");
+            url.append(users_listview.getSelectionModel().getSelectedItem());
 
             URL obj = new URL(url.toString());
             HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
@@ -327,39 +125,91 @@ public class ApplController implements Initializable {
             }
             in.close();
             log.info("request was sent");
-            Gson gson = new Gson();
-
-            AuthorizationResponse response1 = gson.fromJson(response.toString(), AuthorizationResponse.class);
-
-            Type listType = new TypeToken<ArrayList<Message>>(){}.getType();
-            ArrayList<Message> messages = gson.fromJson(response1.getResponseMessage() , listType);
-
-
-            chat_listview.getItems().clear();
-
-
-            for(Message msg : messages){
-                DateFormat formatter = new SimpleDateFormat("HH:mm");
-                formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-                String dateFormatted = formatter.format(msg.getDate().getTime());
-                chat_listview.getItems().add(dateFormatted + " " + msg.getSender() + " : " + msg.getMessage());
-            }
-            chat_listview.refresh();
-            CurrentUserInfo.currentChat = login;
-
-            int index = chat_listview.getItems().size() - 1;
-            chat_listview.scrollTo(index);
-
+            users_listview.getItems().clear();
+            LoadUsers();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
 
-    private void LoadUserChats(){
+    private void banUser(){
+        if (users_listview.getSelectionModel().isEmpty() == true){
+            log.info("banUser function call : user is empty");
+            return;
+        }
+        try {
+            log.info("request 'banUser' configuration");
+            StringBuffer url = new StringBuffer();
+            url.append("http://localhost:8080/banUser?login=");
+            url.append(CurrentUserInfo.getCurrentUser().getLogin());
+            url.append("&key=");
+            url.append(CurrentUserInfo.getCurrentKey());
+            url.append("&userToBanLogin=");
+            url.append(users_listview.getSelectionModel().getSelectedItem());
+
+            URL obj = new URL(url.toString());
+            HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
+
+            connection.setRequestMethod("GET");
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+            log.info("request was sent");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void unbanUser(){
+        if (users_listview.getSelectionModel().isEmpty() == true){
+            log.info("unbanUser function call : user is empty");
+            return;
+        }
+        try {
+            log.info("request 'unbanUser' configuration");
+            StringBuffer url = new StringBuffer();
+            url.append("http://localhost:8080/unbanUser?login=");
+            url.append(CurrentUserInfo.getCurrentUser().getLogin());
+            url.append("&key=");
+            url.append(CurrentUserInfo.getCurrentKey());
+            url.append("&userToUnbanLogin=");
+            url.append(users_listview.getSelectionModel().getSelectedItem());
+
+            URL obj = new URL(url.toString());
+            HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
+
+            connection.setRequestMethod("GET");
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+            log.info("request was sent");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void SetCurrentUserNameToWindow(){
+        String text = "Вы вошли под логином : " + CurrentUserInfo.getCurrentUser().getLogin();
+        current_user_name_lbl.setText(text);
+    }
+
+    private void LoadUsers(){
         try {
             log.info("request 'loaduserchat' configuration");
             StringBuffer url = new StringBuffer();
-            url.append("http://localhost:8080/GetUserChats?login=");
+            url.append("http://localhost:8080/LoadUsersForAdmin?login=");
             url.append(CurrentUserInfo.getCurrentUser().getLogin());
             url.append("&key=");
             url.append(CurrentUserInfo.getCurrentKey());
@@ -383,9 +233,9 @@ public class ApplController implements Initializable {
             AuthorizationResponse response1 = gson.fromJson(response.toString(), AuthorizationResponse.class);
 
             Type listType = new TypeToken<Set<String>>(){}.getType();
-            Set<String> currentUsersChat = gson.fromJson(response1.getResponseMessage() , listType);
-            currentUsersChat.remove(CurrentUserInfo.getCurrentUser().getLogin());
-            users_listview.getItems().addAll(currentUsersChat);
+            Set<String> currentUsers = gson.fromJson(response1.getResponseMessage() , listType);
+            currentUsers.remove(CurrentUserInfo.getCurrentUser().getLogin());
+            users_listview.getItems().addAll(currentUsers);
             users_listview.refresh();
 
         } catch (Exception e) {
@@ -397,8 +247,6 @@ public class ApplController implements Initializable {
     private void LogOut(){
         log.info("logout command");
         CurrentUserInfo.LogOut();
-        CurrentUserInfo.ourThread.stop();
-        log.info("thread was stopped");
 
         Stage stageToClose = (Stage) logout_btn.getScene().getWindow();
         stageToClose.close();

@@ -15,8 +15,6 @@ import java.util.Set;
 public class CurrentUserInfo {
     private static User currentUser;
     private static String currentKey;
-    public static Thread ourThread ;
-    public static String currentChat;
     private static final org.apache.log4j.Logger log = Logger.getLogger(CurrentUserInfo.class);
 
     public static User getCurrentUser() {

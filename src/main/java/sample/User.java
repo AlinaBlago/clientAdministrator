@@ -6,14 +6,17 @@ public class User {
     private String Name;
     private String Login;
     private String Password;
+    private boolean isBanned;
 
     public User(String name, String login, String password) {
         Name = name;
         Login = login;
         Password = password;
+        this.isBanned = false;
     }
 
     public static int getNextID() {
+        NextID += 1;
         return NextID;
     }
 
@@ -51,5 +54,13 @@ public class User {
 
     public void setPassword(String password) {
         Password = password;
+    }
+
+    public boolean isBanned() {
+        return isBanned;
+    }
+
+    public void setBanned(boolean banned) {
+        isBanned = banned;
     }
 }

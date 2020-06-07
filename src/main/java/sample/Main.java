@@ -28,7 +28,6 @@ public class Main extends Application {
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
-        CurrentUserInfo.ourThread.stop();
         log.info("Program finalized");
     }
 

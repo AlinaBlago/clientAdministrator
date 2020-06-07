@@ -78,7 +78,7 @@ public class LogInController {
                         //Открываем главное окно
                         Stage applStage = new Stage();
                         FXMLLoader loader = new FXMLLoader();
-                        loader.setLocation(getClass().getResource("/appl.fxml"));
+                        loader.setLocation(getClass().getResource("/admin.fxml"));
                         Parent root = loader.load();
                         applStage.setScene(new Scene(root, 620, 680));
                         applStage.show();
